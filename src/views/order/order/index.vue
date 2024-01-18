@@ -115,7 +115,7 @@
         label="订单产品 - 图片-100"
         align="center"
         prop="goodsImage100"
-        width="100"
+        width="140"
       >
         <template #default="scope">
           <image-preview

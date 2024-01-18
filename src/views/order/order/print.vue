@@ -17,7 +17,11 @@
         />
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" icon="Search" @click="handleQuery"
+        <el-button
+          type="primary"
+          icon="Search"
+          :disabled="!queryParams.orderId"
+          @click="handleQuery"
           >搜索</el-button
         >
       </el-form-item>
@@ -122,28 +126,34 @@ const data = reactive({
 const { queryParams, form, rules } = toRefs(data);
 
 /** 查询订单列表 */
-// async function getList() {
-//   loading.value = true;
-//   try {
-//     if (queryParams.value.orderId) {
-//       const response = await listByOrderId(queryParams.value.orderId);
-//       orderList.value = response;
-//     } else {
-//       orderList.value = [];
-//     }
-//   } finally {
-//     loading.value = false;
-//   }
-// }
-
-function getList() {
+async function getList() {
   loading.value = true;
-  listOrder(queryParams.value).then((response) => {
-    orderList.value = response.rows;
-    total.value = response.total;
+  try {
+    if (queryParams.value.orderId) {
+      const response = await listByOrderId(queryParams.value.orderId);
+      orderList.value = response;
+      if (response.length) {
+        queryParams.value.orderId = '';
+      }
+      if (response.length === 1) {
+        print(response[0]);
+      }
+    } else {
+      orderList.value = [];
+    }
+  } finally {
     loading.value = false;
-  });
+  }
 }
+
+// function getList() {
+//   loading.value = true;
+//   listOrder(queryParams.value).then((response) => {
+//     orderList.value = response.rows;
+//     total.value = response.total;
+//     loading.value = false;
+//   });
+// }
 
 // 取消按钮
 function cancel() {
@@ -204,7 +214,6 @@ function print(data) {
                     margin:0;
                     height:100%;
                     width:100%;
-                    padding:10px;
                     overflow:hidden;
                 }
                 * {
@@ -220,7 +229,7 @@ function print(data) {
   iframe.addEventListener('load', function () {
     // 克隆页面的图片元素
     const image = document.createElement('img');
-    image.style.width = '100%';
+    image.style.maxWidth = '100%';
     image.style.maxHeight = '100%';
     // image.style.height = '95%';
     image.src =
