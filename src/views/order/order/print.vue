@@ -39,14 +39,14 @@
         label="订单产品 - 图片-100"
         align="center"
         prop="goodsImage100"
-        width="100"
+        width="175"
       >
         <template #default="scope">
           <image-preview
             v-if="scope.row.goodsImage100"
             :src="scope.row.goodsImage100"
-            :width="50"
-            :height="50"
+            :width="150"
+            :height="150"
           />
         </template>
       </el-table-column>
@@ -59,14 +59,14 @@
         label="发货面单"
         align="center"
         prop="postOrderImage"
-        width="100"
+        width="175"
       >
         <template #default="scope">
           <image-preview
             v-if="scope.row.postOrderImage"
             :src="scope.row.postOrderImage"
-            :width="50"
-            :height="50"
+            :width="150"
+            :height="150"
           />
         </template>
       </el-table-column>
