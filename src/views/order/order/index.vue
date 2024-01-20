@@ -130,19 +130,15 @@
         align="center"
         prop="goodsCount"
       />
-      <el-table-column
-        label="发货面单"
-        align="center"
-        prop="postOrderImage"
-        width="100"
-      >
+      <el-table-column label="发货面单" align="center" prop="postOrderImage">
         <template #default="scope">
-          <image-preview
+          <el-link
             v-if="scope.row.postOrderImage"
-            :src="scope.row.postOrderImage"
-            :width="50"
-            :height="50"
-          />
+            type="primary"
+            :href="baseUrl + scope.row.postOrderImage"
+            target="_blank"
+            >查看</el-link
+          >
         </template>
       </el-table-column>
       <el-table-column
@@ -202,6 +198,9 @@
             v-model="form.goodsCount"
             placeholder="请输入订单产品 - 数量"
           />
+        </el-form-item>
+        <el-form-item label="发货面单" prop="postOrderImage">
+          <file-upload v-model="form.postOrderImage"/>
         </el-form-item>
         <el-form-item label="关联订单" prop="parentId">
           <el-input v-model="form.parentId" placeholder="请输入关联订单" />
@@ -293,6 +292,7 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref('');
+const baseUrl = import.meta.env.VITE_APP_BASE_API;
 
 const data = reactive({
   form: {},
