@@ -55,7 +55,7 @@ export function importOrder(files, updateSupport) {
     headers: {
       'Content-Type': 'multipart/form-data',
     },
-    timeout: 60000,
+    timeout: 3600000,
     data: form,
   });
 }

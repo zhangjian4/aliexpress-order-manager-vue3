@@ -280,6 +280,7 @@ import {
   updateOrder,
   importOrder,
 } from '@/api/order/order';
+import { ElMessageBox } from 'element-plus';
 
 const { proxy } = getCurrentInstance();
 
@@ -462,13 +463,24 @@ const handleFileSuccess = (response, file, fileList) => {
   upload.open = false;
   upload.isUploading = false;
   proxy.$refs['uploadRef'].handleRemove(file);
-  proxy.$alert(
+  ElMessageBox.alert(
     "<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" +
       response.msg +
       '</div>',
     '导入结果',
-    { dangerouslyUseHTMLString: true }
+    {
+      // if you want to disable its autofocus
+      // autofocus: false,
+      confirmButtonText: '确定',
+    }
   );
+  // proxy.$alert(
+  //   "<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" +
+  //     response.msg +
+  //     '</div>',
+  //   '导入结果',
+  //   { dangerouslyUseHTMLString: true }
+  // );
   getList();
 };
 /** 提交上传文件 */
@@ -480,13 +492,25 @@ async function submitFileForm() {
   try {
     const response = await importOrder(upload.fileList, upload.updateSupport);
     proxy.$refs['uploadRef'].clearFiles();
-    proxy.$alert(
+    ElMessageBox.alert(
       "<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" +
         response.msg +
         '</div>',
       '导入结果',
-      { dangerouslyUseHTMLString: true }
+      {
+        // if you want to disable its autofocus
+        // autofocus: false,
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
+      }
     );
+    // proxy.$alert(
+    //   "<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" +
+    //     response.msg +
+    //     '</div>',
+    //   '导入结果',
+    //   { dangerouslyUseHTMLString: true }
+    // );
     upload.open = false;
     getList();
   } finally {
