@@ -67,3 +67,12 @@ export function listByOrderId(orderId) {
     params: { orderId },
   });
 }
+
+export function setPrinted(id) {
+  return request({
+    url: '/order/order/setPrinted',
+    method: 'post',
+    params: { id },
+  });
+}
+

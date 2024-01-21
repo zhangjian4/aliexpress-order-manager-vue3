@@ -23,13 +23,16 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="订单产品 - 属性" prop="goodsProperties">
-        <el-input
-          v-model="queryParams.goodsProperties"
-          placeholder="请输入订单产品 - 属性"
+      <el-form-item label="是否已打印" prop="printed">
+        <el-select
+          v-model="queryParams.printed"
+          placeholder="请选择是否已打印"
           clearable
-          @keyup.enter="handleQuery"
-        />
+          style="width: 196.4px"
+        >
+          <el-option label="是" :value="true" />
+          <el-option label="否" :value="false" />
+        </el-select>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery"
@@ -141,6 +144,12 @@
           >
         </template>
       </el-table-column>
+      <el-table-column label="是否已打印" align="center" prop="printed">
+        <template #default="scope">
+          <el-tag v-if="scope.row.printed" type="success">是</el-tag>
+          <el-tag v-else type="info">否</el-tag>
+        </template>
+      </el-table-column>
       <el-table-column
         label="操作"
         align="center"
@@ -200,7 +209,7 @@
           />
         </el-form-item>
         <el-form-item label="发货面单" prop="postOrderImage">
-          <file-upload v-model="form.postOrderImage"/>
+          <file-upload v-model="form.postOrderImage" />
         </el-form-item>
         <el-form-item label="关联订单" prop="parentId">
           <el-input v-model="form.parentId" placeholder="请输入关联订单" />

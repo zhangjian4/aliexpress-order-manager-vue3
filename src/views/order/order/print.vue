@@ -97,6 +97,7 @@ import {
   updateOrder,
   importOrder,
   listByOrderId,
+  setPrinted,
 } from '@/api/order/order';
 
 const { proxy } = getCurrentInstance();
@@ -122,6 +123,8 @@ const data = reactive({
 
 const { queryParams, form, rules } = toRefs(data);
 
+let lastId;
+
 /** 查询订单列表 */
 async function getList() {
   loading.value = true;
@@ -129,8 +132,24 @@ async function getList() {
     if (queryParams.value.orderId) {
       const response = await listByOrderId(queryParams.value.orderId);
       orderList.value = response;
-      if (response.length === 1) {
-        print(response[0]);
+      if (response.length) {
+        const first = response[0];
+        const sum = response.reduce(
+          (previousValue, currentValue) =>
+            (previousValue += currentValue.goodsCount),
+          0
+        );
+        if (sum === 1) {
+          print(first);
+        } else if (sum > 1) {
+          if (lastId === first.id) {
+            print(first);
+          } else {
+            lastId = first.id;
+          }
+        }
+      } else {
+        lastId = null;
       }
     } else {
       orderList.value = [];
@@ -176,9 +195,10 @@ function handleQuery() {
   getList();
 }
 
-function print(data) {
+async function print(data) {
   console.log(data);
   console.log(import.meta.env.VITE_APP_BASE_API);
+  await setPrinted(data.id);
   const iframe = document.createElement('iframe');
 
   // iframe 不展示在页面
