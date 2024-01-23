@@ -50,7 +50,12 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="订单产品 - 数量" align="center" prop="goodsCount">
+      <el-table-column
+        label="订单产品 - 数量"
+        align="center"
+        width="120"
+        prop="goodsCount"
+      >
         <template #default="scope">
           <el-tag
             :type="scope.row.goodsCount > 1 ? 'danger' : ''"
@@ -60,7 +65,12 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="发货面单" align="center" prop="postOrderImage">
+      <el-table-column
+        label="发货面单"
+        align="center"
+        width="80"
+        prop="postOrderImage"
+      >
         <template #default="scope">
           <el-link
             v-if="scope.row.postOrderImage"

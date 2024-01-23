@@ -107,6 +107,7 @@
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" align="center" />
+      <el-table-column label="导入时间" align="center" width="160" prop="createTime" />
       <el-table-column label="订单号" align="center" prop="orderId" />
       <el-table-column label="运单号" align="center" prop="postOrderId" />
       <el-table-column
@@ -128,7 +129,7 @@
           />
         </template>
       </el-table-column>
-      <el-table-column label="订单产品 - 数量" align="center" prop="goodsCount">
+      <el-table-column label="订单产品 - 数量" align="center" width="120" prop="goodsCount">
         <template #default="scope">
           <el-tag
             :type="scope.row.goodsCount > 1 ? 'danger' : ''"
@@ -138,7 +139,7 @@
           </el-tag>
         </template>
       </el-table-column>
-      <el-table-column label="发货面单" align="center" prop="postOrderImage">
+      <el-table-column label="发货面单" align="center" width="80" prop="postOrderImage">
         <template #default="scope">
           <el-link
             v-if="scope.row.postOrderImage"
@@ -149,7 +150,7 @@
           >
         </template>
       </el-table-column>
-      <el-table-column label="是否已打印" align="center" prop="printed">
+      <el-table-column label="是否已打印" align="center" width="90" prop="printed">
         <template #default="scope">
           <el-tag v-if="scope.row.printed" type="success">是</el-tag>
           <el-tag v-else type="info">否</el-tag>
