@@ -128,11 +128,16 @@
           />
         </template>
       </el-table-column>
-      <el-table-column
-        label="订单产品 - 数量"
-        align="center"
-        prop="goodsCount"
-      />
+      <el-table-column label="订单产品 - 数量" align="center" prop="goodsCount">
+        <template #default="scope">
+          <el-tag
+            :type="scope.row.goodsCount > 1 ? 'danger' : ''"
+            effect="dark"
+          >
+            {{ scope.row.goodsCount }}
+          </el-tag>
+        </template>
+      </el-table-column>
       <el-table-column label="发货面单" align="center" prop="postOrderImage">
         <template #default="scope">
           <el-link
