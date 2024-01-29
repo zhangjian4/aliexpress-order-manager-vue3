@@ -5,35 +5,8 @@
       ref="queryRef"
       :inline="true"
       v-show="showSearch"
-      label-width="100px"
+      label-width="68px"
     >
-      <el-form-item label="订单号" prop="orderId">
-        <el-input
-          v-model="queryParams.orderId"
-          placeholder="请输入订单号"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="运单号" prop="postOrderId">
-        <el-input
-          v-model="queryParams.postOrderId"
-          placeholder="请输入运单号"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="是否已打印" prop="printed">
-        <el-select
-          v-model="queryParams.printed"
-          placeholder="请选择是否已打印"
-          clearable
-          style="width: 196.4px"
-        >
-          <el-option label="是" :value="true" />
-          <el-option label="否" :value="false" />
-        </el-select>
-      </el-form-item>
       <el-form-item label="导入时间" style="width: 308px">
         <el-date-picker
           v-model="dateRange"
@@ -44,6 +17,32 @@
           end-placeholder="结束日期"
         ></el-date-picker>
       </el-form-item>
+      <el-form-item label="文件名" prop="pdfName">
+        <el-input
+          v-model="queryParams.pdfName"
+          placeholder="请输入文件名"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <!-- <el-form-item label="是否已打印" prop="printed">
+        <el-input
+          v-model="queryParams.printed"
+          placeholder="请输入是否已打印"
+          clearable
+          @keyup.enter="handleQuery"
+        />
+      </el-form-item>
+      <el-form-item label="打印时间" prop="printedTime">
+        <el-date-picker
+          clearable
+          v-model="queryParams.printedTime"
+          type="date"
+          value-format="YYYY-MM-DD"
+          placeholder="请选择打印时间"
+        >
+        </el-date-picker>
+      </el-form-item> -->
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery"
           >搜索</el-button
@@ -53,13 +52,13 @@
     </el-form>
 
     <el-row :gutter="10" class="mb8">
-      <el-col :span="1.5">
+      <!-- <el-col :span="1.5">
         <el-button
           type="primary"
           plain
           icon="Plus"
           @click="handleAdd"
-          v-hasPermi="['order:order:add']"
+          v-hasPermi="['order:collect_order:add']"
           >新增</el-button
         >
       </el-col>
@@ -70,10 +69,10 @@
           icon="Edit"
           :disabled="single"
           @click="handleUpdate"
-          v-hasPermi="['order:order:edit']"
+          v-hasPermi="['order:collect_order:edit']"
           >修改</el-button
         >
-      </el-col>
+      </el-col> -->
       <el-col :span="1.5">
         <el-button
           type="danger"
@@ -81,7 +80,7 @@
           icon="Delete"
           :disabled="multiple"
           @click="handleDelete"
-          v-hasPermi="['order:order:remove']"
+          v-hasPermi="['order:collect_order:remove']"
           >删除</el-button
         >
       </el-col>
@@ -91,18 +90,8 @@
           plain
           icon="Upload"
           @click="handleImport"
-          v-hasPermi="['system:user:import']"
+          v-hasPermi="['order:collect_order:import']"
           >导入</el-button
-        >
-      </el-col>
-      <el-col :span="1.5">
-        <el-button
-          type="warning"
-          plain
-          icon="Download"
-          @click="handleExport"
-          v-hasPermi="['order:order:export']"
-          >导出</el-button
         >
       </el-col>
       <right-toolbar
@@ -113,79 +102,57 @@
 
     <el-table
       v-loading="loading"
-      :data="orderList"
+      :data="collect_orderList"
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="导入时间" align="center" width="160" prop="createTime" />
-      <el-table-column label="订单号" align="center" prop="orderId" />
-      <el-table-column label="运单号" align="center" prop="postOrderId" />
       <el-table-column
-        label="订单产品 - 属性"
+        label="导入时间"
         align="center"
-        prop="goodsProperties"
+        width="160"
+        prop="createTime"
       />
-      <el-table-column
-        label="订单产品 - 图片-100"
-        align="center"
-        prop="goodsImage100"
-        width="140"
-      >
-        <template #default="scope">
-          <image-preview
-            :src="scope.row.goodsImage100"
-            :width="50"
-            :height="50"
-          />
-        </template>
-      </el-table-column>
-      <el-table-column label="订单产品 - 数量" align="center" width="120" prop="goodsCount">
-        <template #default="scope">
-          <el-tag
-            :type="scope.row.goodsCount > 1 ? 'danger' : ''"
-            effect="dark"
-          >
-            {{ scope.row.goodsCount }}
-          </el-tag>
-        </template>
-      </el-table-column>
-      <el-table-column label="发货面单" align="center" width="80" prop="postOrderImage">
+      <el-table-column label="PDF" align="center" prop="pdf">
         <template #default="scope">
           <el-link
-            v-if="scope.row.postOrderImage"
+            v-if="scope.row.pdf"
             type="primary"
-            :href="baseUrl + scope.row.postOrderImage"
+            :href="baseUrl + scope.row.pdf"
             target="_blank"
-            >查看</el-link
+            >{{ scope.row.pdfName }}</el-link
           >
         </template>
       </el-table-column>
-      <el-table-column label="是否已打印" align="center" width="90" prop="printed">
-        <template #default="scope">
-          <el-tag v-if="scope.row.printed" type="success">是</el-tag>
-          <el-tag v-else type="info">否</el-tag>
-        </template>
-      </el-table-column>
+      <!-- <el-table-column label="文件名" align="center" prop="pdfName" /> -->
       <el-table-column
         label="操作"
         align="center"
         class-name="small-padding fixed-width"
       >
         <template #default="scope">
-          <el-button
+          <!-- <el-button
             link
             type="primary"
             icon="Edit"
             @click="handleUpdate(scope.row)"
-            v-hasPermi="['order:order:edit']"
+            v-hasPermi="['order:collect_order:edit']"
             >修改</el-button
+          > -->
+          <el-button
+            v-if="scope.row.pdf"
+            link
+            type="primary"
+            icon="Printer"
+            @click="print(scope.row)"
+            v-hasPermi="['order:order:print']"
+            >打印</el-button
           >
           <el-button
             link
             type="primary"
             icon="Delete"
             @click="handleDelete(scope.row)"
-            v-hasPermi="['order:order:remove']"
+            v-hasPermi="['order:collect_order:remove']"
             >删除</el-button
           >
         </template>
@@ -200,35 +167,32 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改订单对话框 -->
-    <el-dialog :title="title" v-model="open" width="720px" append-to-body>
-      <el-form ref="orderRef" :model="form" :rules="rules" label-width="120px">
-        <el-form-item label="订单号" prop="orderId">
-          <el-input v-model="form.orderId" placeholder="请输入订单号" />
+    <!-- 添加或修改揽收单对话框 -->
+    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
+      <el-form
+        ref="collect_orderRef"
+        :model="form"
+        :rules="rules"
+        label-width="80px"
+      >
+        <el-form-item label="PDF" prop="pdf">
+          <el-input v-model="form.pdf" placeholder="请输入PDF" />
         </el-form-item>
-        <el-form-item label="运单号" prop="postOrderId">
-          <el-input v-model="form.postOrderId" placeholder="请输入运单号" />
+        <el-form-item label="文件名" prop="pdfName">
+          <el-input v-model="form.pdfName" placeholder="请输入文件名" />
         </el-form-item>
-        <el-form-item label="订单产品 - 属性" prop="goodsProperties">
-          <el-input
-            v-model="form.goodsProperties"
-            placeholder="请输入订单产品 - 属性"
-          />
+        <el-form-item label="是否已打印" prop="printed">
+          <el-input v-model="form.printed" placeholder="请输入是否已打印" />
         </el-form-item>
-        <el-form-item label="订单产品 - 图片-100" prop="goodsImage100">
-          <image-upload v-model="form.goodsImage100" />
-        </el-form-item>
-        <el-form-item label="订单产品 - 数量" prop="goodsCount">
-          <el-input
-            v-model="form.goodsCount"
-            placeholder="请输入订单产品 - 数量"
-          />
-        </el-form-item>
-        <el-form-item label="发货面单" prop="postOrderImage">
-          <file-upload v-model="form.postOrderImage" />
-        </el-form-item>
-        <el-form-item label="关联订单" prop="parentId">
-          <el-input v-model="form.parentId" placeholder="请输入关联订单" />
+        <el-form-item label="打印时间" prop="printedTime">
+          <el-date-picker
+            clearable
+            v-model="form.printedTime"
+            type="date"
+            value-format="YYYY-MM-DD"
+            placeholder="请选择打印时间"
+          >
+          </el-date-picker>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -238,7 +202,6 @@
         </div>
       </template>
     </el-dialog>
-    <!-- 订单导入对话框 -->
     <el-dialog
       :title="upload.title"
       v-model="upload.open"
@@ -247,8 +210,7 @@
     >
       <el-upload
         ref="uploadRef"
-        :limit="2"
-        accept=".xlsx, .xls, .pdf"
+        accept=".pdf"
         :headers="upload.headers"
         :action="upload.url + '?updateSupport=' + upload.updateSupport"
         :disabled="upload.isUploading"
@@ -263,19 +225,7 @@
         <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
         <template #tip>
           <div class="el-upload__tip text-center">
-            <div class="el-upload__tip">
-              <el-checkbox
-                v-model="upload.updateSupport"
-              />是否覆盖已经存在的订单数据
-            </div>
-            <span>仅允许导入xls、xlsx、pdf格式文件。</span>
-            <el-link
-              type="primary"
-              :underline="false"
-              style="font-size: 12px; vertical-align: baseline"
-              @click="importTemplate"
-              >下载模板</el-link
-            >
+            <span>仅允许导入pdf格式文件。</span>
           </div>
         </template>
       </el-upload>
@@ -294,21 +244,21 @@
   </div>
 </template>
 
-<script setup name="Order">
-import { getToken } from '@/utils/auth';
+<script setup name="Collect_order">
 import {
-  listOrder,
-  getOrder,
-  delOrder,
-  addOrder,
-  updateOrder,
+  listCollect_order,
+  getCollect_order,
+  delCollect_order,
+  addCollect_order,
+  updateCollect_order,
   importOrder,
-} from '@/api/order/order';
+} from '@/api/order/collect_order';
+import { getToken } from '@/utils/auth';
 import { ElMessageBox } from 'element-plus';
 
 const { proxy } = getCurrentInstance();
 
-const orderList = ref([]);
+const collect_orderList = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -317,31 +267,29 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref('');
-const dateRange = ref([]);
 const baseUrl = import.meta.env.VITE_APP_BASE_API;
+const dateRange = ref([]);
 
 const data = reactive({
   form: {},
   queryParams: {
     pageNum: 1,
     pageSize: 10,
-    orderId: null,
-    storeName: null,
-    postOrderId: null,
-    goodsProperties: null,
-    goodsImage100: null,
-    goodsCount: null,
+    pdf: null,
+    pdfName: null,
+    printed: null,
+    printedTime: null,
   },
   rules: {},
 });
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询订单列表 */
+/** 查询揽收单列表 */
 function getList() {
   loading.value = true;
-  listOrder(proxy.addDateRange(queryParams.value, dateRange.value)).then((response) => {
-    orderList.value = response.rows;
+  listCollect_order(proxy.addDateRange(queryParams.value, dateRange.value)).then((response) => {
+    collect_orderList.value = response.rows;
     total.value = response.total;
     loading.value = false;
   });
@@ -357,14 +305,13 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    orderId: null,
-    storeName: null,
-    postOrderId: null,
-    goodsProperties: null,
-    goodsImage100: null,
-    goodsCount: null,
+    createTime: null,
+    pdf: null,
+    pdfName: null,
+    printed: null,
+    printedTime: null,
   };
-  proxy.resetForm('orderRef');
+  proxy.resetForm('collect_orderRef');
 }
 
 /** 搜索按钮操作 */
@@ -391,32 +338,32 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = '添加订单';
+  title.value = '添加揽收单';
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
   const _id = row.id || ids.value;
-  getOrder(_id).then((response) => {
+  getCollect_order(_id).then((response) => {
     form.value = response.data;
     open.value = true;
-    title.value = '修改订单';
+    title.value = '修改揽收单';
   });
 }
 
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs['orderRef'].validate((valid) => {
+  proxy.$refs['collect_orderRef'].validate((valid) => {
     if (valid) {
       if (form.value.id != null) {
-        updateOrder(form.value).then((response) => {
+        updateCollect_order(form.value).then((response) => {
           proxy.$modal.msgSuccess('修改成功');
           open.value = false;
           getList();
         });
       } else {
-        addOrder(form.value).then((response) => {
+        addCollect_order(form.value).then((response) => {
           proxy.$modal.msgSuccess('新增成功');
           open.value = false;
           getList();
@@ -430,26 +377,15 @@ function submitForm() {
 function handleDelete(row) {
   const _ids = row.id || ids.value;
   proxy.$modal
-    .confirm('是否确认删除订单编号为"' + _ids + '"的数据项？')
+    .confirm('是否确认删除揽收单编号为"' + _ids + '"的数据项？')
     .then(function () {
-      return delOrder(_ids);
+      return delCollect_order(_ids);
     })
     .then(() => {
       getList();
       proxy.$modal.msgSuccess('删除成功');
     })
     .catch(() => {});
-}
-
-/** 导出按钮操作 */
-function handleExport() {
-  proxy.download(
-    'order/order/export',
-    {
-      ...queryParams.value,
-    },
-    `order_${new Date().getTime()}.xlsx`
-  );
 }
 
 /*** 用户导入参数 */
@@ -472,14 +408,6 @@ const upload = reactive({
 function handleImport() {
   upload.title = '订单导入';
   upload.open = true;
-}
-/** 下载模板操作 */
-function importTemplate() {
-  proxy.download(
-    'order/order/importTemplate',
-    {},
-    `user_template_${new Date().getTime()}.xlsx`
-  );
 }
 /**文件上传中处理 */
 const handleFileUploadProgress = (event, file, fileList) => {
@@ -545,5 +473,17 @@ async function submitFileForm() {
   }
 }
 
+async function print(data) {
+  const iframe = document.createElement('iframe');
+  iframe.style.visibility = 'hidden';
+  iframe.src = import.meta.env.VITE_APP_BASE_API + data.pdf;
+  document.body.appendChild(iframe);
+  iframe.addEventListener('load', function () {
+    iframe.contentWindow.print();
+    iframe.contentWindow.addEventListener('afterprint', function () {
+      iframe.parentNode.removeChild(iframe);
+    });
+  });
+}
 getList();
 </script>

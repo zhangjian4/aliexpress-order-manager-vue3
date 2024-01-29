@@ -211,69 +211,14 @@ function handleQuery() {
 }
 
 async function print(data) {
-  console.log(data);
-  console.log(import.meta.env.VITE_APP_BASE_API);
   await setPrinted(data.id);
   const iframe = document.createElement('iframe');
-
-  // iframe 不展示在页面
   iframe.style.visibility = 'hidden';
   iframe.src = import.meta.env.VITE_APP_BASE_API + data.postOrderImage;
-  // iframe.style.height = '500px';
-  // iframe.style.width = '500px';
-  // iframe.style.position = 'fixed';
-  // iframe.style.top = 0;
-  // iframe.style.left = 0;
-  // iframe.style.zIndex = 100000;
-  // 设置 iframe 内容
-  // iframe.setAttribute(
-  //   'srcdoc',
-  //   `<html style="margin-top:0">
-  //       <head>
-  //           <style>
-  //               @media print {
-  //                   @page {
-  //                       margin: 0;
-  //                       size: auto;
-  //                   }
-  //               }
-  //               html{
-  //                   height:100%;
-  //                   width:100%;
-  //               }
-  //               body {
-  //                   margin:0;
-  //                   height:100%;
-  //                   width:100%;
-  //                   overflow:hidden;
-  //               }
-  //               * {
-  //                   box-sizing:border-box;
-  //               }
-  //           </style>
-  //       </head>
-  //       <body></body>
-  //   </html>`
-  // );
-
   document.body.appendChild(iframe);
   iframe.addEventListener('load', function () {
-    // 克隆页面的图片元素
-    // const image = document.createElement('img');
-    // image.style.maxWidth = '100%';
-    // image.style.maxHeight = '100%';
-    // // image.style.height = '95%';
-    // image.src =
-    //   location.origin + import.meta.env.VITE_APP_BASE_API + data.postOrderImage;
-    // // 把克隆的图片元素添加到 iframe 内
-    // const body = iframe.contentDocument.body;
-    // body.style.textAlign = 'center';
-    // body.appendChild(image);
-    // image.addEventListener('load', function () {
     iframe.contentWindow.print();
-    // });
     iframe.contentWindow.addEventListener('afterprint', function () {
-      // 通过父级页面删除 iframe 自己
       iframe.parentNode.removeChild(iframe);
     });
   });
