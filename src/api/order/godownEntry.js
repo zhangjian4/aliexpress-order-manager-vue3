@@ -1,52 +1,53 @@
-import request from '@/utils/request'
+import request from '@/utils/request';
 
-// 查询入库单列表
-export function listGodownEntry(query) {
+// 查询订单列表
+export function listOrder(query) {
   return request({
     url: '/order/godownEntry/list',
     method: 'get',
-    params: query
-  })
+    params: query,
+  });
 }
 
-// 查询入库单详细
-export function getGodownEntry(id) {
+// 查询订单详细
+export function getOrder(id) {
   return request({
     url: '/order/godownEntry/' + id,
-    method: 'get'
-  })
+    method: 'get',
+  });
 }
 
-// 新增入库单
-export function addGodownEntry(data) {
+// 新增订单
+export function addOrder(data) {
   return request({
     url: '/order/godownEntry',
     method: 'post',
-    data: data
-  })
+    data: data,
+  });
 }
 
-// 修改入库单
-export function updateGodownEntry(data) {
+// 修改订单
+export function updateOrder(data) {
   return request({
     url: '/order/godownEntry',
     method: 'put',
-    data: data
-  })
+    data: data,
+  });
 }
 
-// 删除入库单
-export function delGodownEntry(id) {
+// 删除订单
+export function delOrder(id) {
   return request({
     url: '/order/godownEntry/' + id,
-    method: 'delete'
-  })
+    method: 'delete',
+  });
 }
-export function importOrder(files, updateSupport) {
+
+export function importOrder(excel, pdf, tagPdf, updateSupport) {
   var form = new FormData();
-  for (var i = 0; i < files.length; i++) {
-    form.append('file', files[i].raw);
-  }
+  form.append('excel', excel[0].raw);
+  form.append('pdf', pdf[0].raw);
+  form.append('tagPdf', tagPdf[0].raw);
   form.append('updateSupport', updateSupport);
   return request({
     url: '/order/godownEntry/importData',

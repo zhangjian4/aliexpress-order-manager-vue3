@@ -5,7 +5,7 @@
       ref="queryRef"
       :inline="true"
       v-show="showSearch"
-      label-width="68px"
+      label-width="100px"
     >
       <el-form-item label="入库单编号" prop="orderId">
         <el-input
@@ -23,63 +23,26 @@
           @keyup.enter="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="货品ID" prop="goodsId">
-        <el-input
-          v-model="queryParams.goodsId"
-          placeholder="请输入货品ID"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="商品属性" prop="goodsProperties">
-        <el-input
-          v-model="queryParams.goodsProperties"
-          placeholder="请输入商品属性"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="商品图片" prop="goodsImage100">
-        <el-input
-          v-model="queryParams.goodsImage100"
-          placeholder="请输入商品图片"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="计划数量" prop="goodsCount">
-        <el-input
-          v-model="queryParams.goodsCount"
-          placeholder="请输入计划数量"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="父级id" prop="parentId">
-        <el-input
-          v-model="queryParams.parentId"
-          placeholder="请输入父级id"
-          clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
       <el-form-item label="是否已打印" prop="printed">
-        <el-input
+        <el-select
           v-model="queryParams.printed"
-          placeholder="请输入是否已打印"
+          placeholder="请选择是否已打印"
           clearable
-          @keyup.enter="handleQuery"
-        />
-      </el-form-item>
-      <el-form-item label="打印时间" prop="printedTime">
-        <el-date-picker
-          clearable
-          v-model="queryParams.printedTime"
-          type="date"
-          value-format="YYYY-MM-DD"
-          placeholder="请选择打印时间"
+          style="width: 196.4px"
         >
-        </el-date-picker>
+          <el-option label="是" :value="true" />
+          <el-option label="否" :value="false" />
+        </el-select>
+      </el-form-item>
+      <el-form-item label="导入时间" style="width: 308px">
+        <el-date-picker
+          v-model="dateRange"
+          value-format="YYYY-MM-DD"
+          type="daterange"
+          range-separator="-"
+          start-placeholder="开始日期"
+          end-placeholder="结束日期"
+        ></el-date-picker>
       </el-form-item>
       <el-form-item>
         <el-button type="primary" icon="Search" @click="handleQuery"
@@ -124,6 +87,16 @@
       </el-col>
       <el-col :span="1.5">
         <el-button
+          type="info"
+          plain
+          icon="Upload"
+          @click="handleImport"
+          v-hasPermi="['system:user:import']"
+          >导入</el-button
+        >
+      </el-col>
+      <el-col :span="1.5">
+        <el-button
           type="warning"
           plain
           icon="Download"
@@ -140,29 +113,90 @@
 
     <el-table
       v-loading="loading"
-      :data="godownEntryList"
+      :data="orderList"
       @selection-change="handleSelectionChange"
     >
       <el-table-column type="selection" width="55" align="center" />
-      <el-table-column label="id" align="center" prop="id" />
+      <el-table-column
+        label="导入时间"
+        align="center"
+        width="160"
+        prop="createTime"
+      />
       <el-table-column label="入库单编号" align="center" prop="orderId" />
       <el-table-column label="入库物流单" align="center" prop="postOrderId" />
       <el-table-column label="货品ID" align="center" prop="goodsId" />
       <el-table-column label="商品属性" align="center" prop="goodsProperties" />
-      <el-table-column label="商品图片" align="center" prop="goodsImage100" />
-      <el-table-column label="计划数量" align="center" prop="goodsCount" />
-      <el-table-column label="货品标签" align="center" prop="goodsTag" />
-      <el-table-column label="发货面单" align="center" prop="postOrderImage" />
-      <el-table-column label="父级id" align="center" prop="parentId" />
-      <el-table-column label="是否已打印" align="center" prop="printed" />
       <el-table-column
-        label="打印时间"
+        label="商品图片"
         align="center"
-        prop="printedTime"
-        width="180"
+        prop="goodsImage100"
+        width="140"
       >
         <template #default="scope">
-          <span>{{ parseTime(scope.row.printedTime, '{y}-{m}-{d}') }}</span>
+          <image-preview
+            :src="scope.row.goodsImage100"
+            :width="50"
+            :height="50"
+          />
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="计划数量"
+        align="center"
+        width="120"
+        prop="goodsCount"
+      >
+        <template #default="scope">
+          <el-tag
+            :type="scope.row.goodsCount > 1 ? 'danger' : ''"
+            effect="dark"
+          >
+            {{ scope.row.goodsCount }}
+          </el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="入库面单"
+        align="center"
+        width="80"
+        prop="postOrderImage"
+      >
+        <template #default="scope">
+          <el-link
+            v-if="scope.row.postOrderImage"
+            type="primary"
+            :href="baseUrl + scope.row.postOrderImage"
+            target="_blank"
+            >查看</el-link
+          >
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="货品标签"
+        align="center"
+        width="80"
+        prop="goodsTag"
+      >
+        <template #default="scope">
+          <el-link
+            v-if="scope.row.goodsTag"
+            type="primary"
+            :href="baseUrl + scope.row.goodsTag"
+            target="_blank"
+            >查看</el-link
+          >
+        </template>
+      </el-table-column>
+      <el-table-column
+        label="是否已打印"
+        align="center"
+        width="90"
+        prop="printed"
+      >
+        <template #default="scope">
+          <el-tag v-if="scope.row.printed" type="success">是</el-tag>
+          <el-tag v-else type="info">否</el-tag>
         </template>
       </el-table-column>
       <el-table-column
@@ -199,14 +233,9 @@
       @pagination="getList"
     />
 
-    <!-- 添加或修改入库单对话框 -->
-    <el-dialog :title="title" v-model="open" width="500px" append-to-body>
-      <el-form
-        ref="godownEntryRef"
-        :model="form"
-        :rules="rules"
-        label-width="80px"
-      >
+    <!-- 添加或修改订单对话框 -->
+    <el-dialog :title="title" v-model="open" width="720px" append-to-body>
+      <el-form ref="orderRef" :model="form" :rules="rules" label-width="120px">
         <el-form-item label="入库单编号" prop="orderId">
           <el-input v-model="form.orderId" placeholder="请输入入库单编号" />
         </el-form-item>
@@ -214,7 +243,7 @@
           <el-input v-model="form.postOrderId" placeholder="请输入入库物流单" />
         </el-form-item>
         <el-form-item label="货品ID" prop="goodsId">
-          <el-input v-model="form.goodsId" placeholder="请输入货品ID" />
+          <el-input v-model="form.goodsId" placeholder="请输入入库物流单" />
         </el-form-item>
         <el-form-item label="商品属性" prop="goodsProperties">
           <el-input
@@ -223,32 +252,16 @@
           />
         </el-form-item>
         <el-form-item label="商品图片" prop="goodsImage100">
-          <el-input v-model="form.goodsImage100" placeholder="请输入商品图片" />
+          <image-upload v-model="form.goodsImage100" />
         </el-form-item>
         <el-form-item label="计划数量" prop="goodsCount">
           <el-input v-model="form.goodsCount" placeholder="请输入计划数量" />
         </el-form-item>
-        <el-form-item label="货品标签" prop="goodsTag">
-          <file-upload v-model="form.goodsTag" />
-        </el-form-item>
-        <el-form-item label="发货面单" prop="postOrderImage">
+        <el-form-item label="入库面单" prop="postOrderImage">
           <file-upload v-model="form.postOrderImage" />
         </el-form-item>
-        <el-form-item label="父级id" prop="parentId">
-          <el-input v-model="form.parentId" placeholder="请输入父级id" />
-        </el-form-item>
-        <el-form-item label="是否已打印" prop="printed">
-          <el-input v-model="form.printed" placeholder="请输入是否已打印" />
-        </el-form-item>
-        <el-form-item label="打印时间" prop="printedTime">
-          <el-date-picker
-            clearable
-            v-model="form.printedTime"
-            type="date"
-            value-format="YYYY-MM-DD"
-            placeholder="请选择打印时间"
-          >
-          </el-date-picker>
+        <el-form-item label="关联入库单" prop="parentId">
+          <el-input v-model="form.parentId" placeholder="请输入关联入库单" />
         </el-form-item>
       </el-form>
       <template #footer>
@@ -258,21 +271,83 @@
         </div>
       </template>
     </el-dialog>
+    <!-- 订单导入对话框 -->
+    <el-dialog
+      :title="upload.title"
+      v-model="upload.open"
+      width="400px"
+      append-to-body
+    >
+      <el-upload
+        :limit="1"
+        accept=".xlsx, .xls"
+        :auto-upload="false"
+        v-model:file-list="upload.excel"
+      >
+        <el-button type="primary" :disabled="upload.excel?.length > 0"
+          >上传入库单数据Excel</el-button
+        >
+      </el-upload>
+      <el-upload
+        :limit="1"
+        accept=".pdf"
+        :auto-upload="false"
+        v-model:file-list="upload.pdf"
+      >
+        <el-button type="primary" :disabled="upload.pdf?.length > 0"
+          >上传入库面单PDF</el-button
+        >
+      </el-upload>
+      <el-upload
+        :limit="1"
+        accept=".pdf"
+        :auto-upload="false"
+        v-model:file-list="upload.tagPdf"
+      >
+        <el-button type="primary" :disabled="upload.tagPdf?.length > 0"
+          >上传货品标签PDF</el-button
+        >
+      </el-upload>
+      <div class="el-upload__tip text-center">
+        <div class="el-upload__tip">
+          <el-checkbox v-model="upload.updateSupport" />是否覆盖已经存在的数据
+        </div>
+      </div>
+      <template #footer>
+        <div class="dialog-footer">
+          <el-button
+            type="primary"
+            @click="submitFileForm"
+            :loading="upload.isUploading"
+            :disabled="
+              !upload.excel?.length ||
+              !upload.pdf?.length ||
+              !upload.tagPdf?.length
+            "
+            >确 定</el-button
+          >
+          <el-button @click="upload.open = false">取 消</el-button>
+        </div>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
-<script setup name="GodownEntry">
+<script setup name="Order">
+import { getToken } from '@/utils/auth';
 import {
-  listGodownEntry,
-  getGodownEntry,
-  delGodownEntry,
-  addGodownEntry,
-  updateGodownEntry,
+  listOrder,
+  getOrder,
+  delOrder,
+  addOrder,
+  updateOrder,
+  importOrder,
 } from '@/api/order/godownEntry';
+import { ElMessageBox } from 'element-plus';
 
 const { proxy } = getCurrentInstance();
 
-const godownEntryList = ref([]);
+const orderList = ref([]);
 const open = ref(false);
 const loading = ref(true);
 const showSearch = ref(true);
@@ -281,6 +356,8 @@ const single = ref(true);
 const multiple = ref(true);
 const total = ref(0);
 const title = ref('');
+const dateRange = ref([]);
+const baseUrl = import.meta.env.VITE_APP_BASE_API;
 
 const data = reactive({
   form: {},
@@ -288,30 +365,27 @@ const data = reactive({
     pageNum: 1,
     pageSize: 10,
     orderId: null,
+    storeName: null,
     postOrderId: null,
-    goodsId: null,
     goodsProperties: null,
     goodsImage100: null,
     goodsCount: null,
-    goodsTag: null,
-    postOrderImage: null,
-    parentId: null,
-    printed: null,
-    printedTime: null,
   },
   rules: {},
 });
 
 const { queryParams, form, rules } = toRefs(data);
 
-/** 查询入库单列表 */
+/** 查询订单列表 */
 function getList() {
   loading.value = true;
-  listGodownEntry(queryParams.value).then((response) => {
-    godownEntryList.value = response.rows;
-    total.value = response.total;
-    loading.value = false;
-  });
+  listOrder(proxy.addDateRange(queryParams.value, dateRange.value)).then(
+    (response) => {
+      orderList.value = response.rows;
+      total.value = response.total;
+      loading.value = false;
+    }
+  );
 }
 
 // 取消按钮
@@ -324,20 +398,14 @@ function cancel() {
 function reset() {
   form.value = {
     id: null,
-    createTime: null,
     orderId: null,
+    storeName: null,
     postOrderId: null,
-    goodsId: null,
     goodsProperties: null,
     goodsImage100: null,
     goodsCount: null,
-    goodsTag: null,
-    postOrderImage: null,
-    parentId: null,
-    printed: null,
-    printedTime: null,
   };
-  proxy.resetForm('godownEntryRef');
+  proxy.resetForm('orderRef');
 }
 
 /** 搜索按钮操作 */
@@ -348,6 +416,7 @@ function handleQuery() {
 
 /** 重置按钮操作 */
 function resetQuery() {
+  dateRange.value = [];
   proxy.resetForm('queryRef');
   handleQuery();
 }
@@ -363,32 +432,32 @@ function handleSelectionChange(selection) {
 function handleAdd() {
   reset();
   open.value = true;
-  title.value = '添加入库单';
+  title.value = '添加订单';
 }
 
 /** 修改按钮操作 */
 function handleUpdate(row) {
   reset();
   const _id = row.id || ids.value;
-  getGodownEntry(_id).then((response) => {
+  getOrder(_id).then((response) => {
     form.value = response.data;
     open.value = true;
-    title.value = '修改入库单';
+    title.value = '修改订单';
   });
 }
 
 /** 提交按钮 */
 function submitForm() {
-  proxy.$refs['godownEntryRef'].validate((valid) => {
+  proxy.$refs['orderRef'].validate((valid) => {
     if (valid) {
       if (form.value.id != null) {
-        updateGodownEntry(form.value).then((response) => {
+        updateOrder(form.value).then((response) => {
           proxy.$modal.msgSuccess('修改成功');
           open.value = false;
           getList();
         });
       } else {
-        addGodownEntry(form.value).then((response) => {
+        addOrder(form.value).then((response) => {
           proxy.$modal.msgSuccess('新增成功');
           open.value = false;
           getList();
@@ -402,9 +471,9 @@ function submitForm() {
 function handleDelete(row) {
   const _ids = row.id || ids.value;
   proxy.$modal
-    .confirm('是否确认删除入库单编号为"' + _ids + '"的数据项？')
+    .confirm('是否确认删除订单编号为"' + _ids + '"的数据项？')
     .then(function () {
-      return delGodownEntry(_ids);
+      return delOrder(_ids);
     })
     .then(() => {
       getList();
@@ -420,8 +489,80 @@ function handleExport() {
     {
       ...queryParams.value,
     },
-    `godownEntry_${new Date().getTime()}.xlsx`
+    `order_${new Date().getTime()}.xlsx`
   );
+}
+
+/*** 用户导入参数 */
+const upload = reactive({
+  // 是否显示弹出层（用户导入）
+  open: false,
+  // 弹出层标题（用户导入）
+  title: '',
+  // 是否禁用上传
+  isUploading: false,
+  // 是否更新已经存在的用户数据
+  updateSupport: true,
+  // 设置上传的请求头部
+  headers: { Authorization: 'Bearer ' + getToken() },
+  // 上传的地址
+  url: import.meta.env.VITE_APP_BASE_API + '/order/godownEntry/importData',
+  fileList: [],
+});
+/** 导入按钮操作 */
+function handleImport() {
+  upload.title = '订单导入';
+  upload.open = true;
+}
+/** 下载模板操作 */
+function importTemplate() {
+  proxy.download(
+    'order/godownEntry/importTemplate',
+    {},
+    `user_template_${new Date().getTime()}.xlsx`
+  );
+}
+
+/** 提交上传文件 */
+async function submitFileForm() {
+  if (upload.isUploading) {
+    return;
+  }
+  upload.isUploading = true;
+  try {
+    const response = await importOrder(
+      upload.excel,
+      upload.pdf,
+      upload.tagPdf,
+      upload.updateSupport
+    );
+    upload.excel = [];
+    upload.pdf = [];
+    upload.tagPdf = [];
+    ElMessageBox.alert(
+      "<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" +
+        response.msg +
+        '</div>',
+      '导入结果',
+      {
+        // if you want to disable its autofocus
+        // autofocus: false,
+        dangerouslyUseHTMLString: true,
+        confirmButtonText: '确定',
+      }
+    );
+    // proxy.$alert(
+    //   "<div style='overflow: auto;overflow-x: hidden;max-height: 70vh;padding: 10px 20px 0;'>" +
+    //     response.msg +
+    //     '</div>',
+    //   '导入结果',
+    //   { dangerouslyUseHTMLString: true }
+    // );
+    upload.open = false;
+    getList();
+  } finally {
+    upload.isUploading = false;
+  }
 }
 
 getList();
