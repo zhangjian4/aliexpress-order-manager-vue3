@@ -105,9 +105,18 @@
             link
             type="primary"
             icon="Printer"
-            @click="print(scope.row)"
+            @click="printAll(scope.row)"
             v-hasPermi="['order:order:edit']"
-            >打印</el-button
+            >打印全部</el-button
+          >
+          <el-button
+            v-if="scope.row.goodsTag"
+            link
+            type="primary"
+            icon="Printer"
+            @click="printTag(scope.row)"
+            v-hasPermi="['order:order:edit']"
+            >打印标签</el-button
           >
         </template>
       </el-table-column>
@@ -127,6 +136,9 @@ import {
   listByOrderId,
   setPrinted,
 } from '@/api/order/godownEntry';
+import { connect, print } from '@/utils/print';
+import { getPrintConfig, savePrintConfig } from '@/api/system/printConfig';
+import { ElMessage } from 'element-plus';
 
 const { proxy } = getCurrentInstance();
 
@@ -168,10 +180,10 @@ async function getList() {
           0
         );
         if (sum === 1) {
-          print(first);
+          printAll(first);
         } else if (sum > 1) {
           if (lastId === first.id) {
-            print(first);
+            printAll(first);
           } else {
             lastId = first.id;
           }
@@ -223,17 +235,39 @@ function handleQuery() {
   getList();
 }
 
-async function print(data) {
-  await setPrinted(data.id);
-  const iframe = document.createElement('iframe');
-  iframe.style.visibility = 'hidden';
-  iframe.src = import.meta.env.VITE_APP_BASE_API + data.postOrderImage;
-  document.body.appendChild(iframe);
-  iframe.addEventListener('load', function () {
-    iframe.contentWindow.print();
-    iframe.contentWindow.addEventListener('afterprint', function () {
-      iframe.parentNode.removeChild(iframe);
-    });
-  });
+async function printPdf(file, type, beforePrint) {
+  const config = getPrintConfig();
+  let printerName;
+  if (type === 'tag') {
+    printerName = config.tagPrinter;
+    if (!printerName) {
+      ElMessage('未设置货品条码打印机');
+      return;
+    }
+  } else {
+    printerName = config.printer;
+    if (!printerName) {
+      ElMessage('未设置面单打印机');
+      return;
+    }
+  }
+  const url = location.origin + import.meta.env.VITE_APP_BASE_API + file;
+  if (beforePrint) {
+    beforePrint();
+  }
+  print(printerName, url);
+}
+async function printAll(data) {
+  await connect();
+  await printPdf(data.postOrderImage, null, () => setPrinted(data.id));
+  for (let item of orderList.value) {
+    if ((item.id === data.id || item.parentId == data.id) && item.goodsTag) {
+      await printPdf(item.goodsTag, 'tag');
+    }
+  }
+}
+
+async function printTag(data) {
+  await printPdf(data.goodsTag, 'tag');
 }
 </script>
