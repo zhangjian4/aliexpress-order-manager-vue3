@@ -124,7 +124,7 @@
   </div>
 </template>
 
-<script setup name="Order">
+<script setup name="GodownEntryPrint">
 import { getToken } from '@/utils/auth';
 import {
   listOrder,
@@ -141,6 +141,7 @@ import { getPrintConfig, savePrintConfig } from '@/api/system/printConfig';
 import { ElMessage } from 'element-plus';
 
 const { proxy } = getCurrentInstance();
+const router = useRouter();
 
 const orderList = ref([]);
 const open = ref(false);
@@ -242,13 +243,15 @@ async function printPdf(file, type, beforePrint) {
     printerName = config.tagPrinter;
     if (!printerName) {
       ElMessage('未设置货品条码打印机');
-      return;
+      router.push('/system/printConfig');
+      throw new Error('未设置货品条码打印机');
     }
   } else {
     printerName = config.printer;
     if (!printerName) {
       ElMessage('未设置面单打印机');
-      return;
+      router.push('/system/printConfig');
+      throw new Error('未设置面单打印机');
     }
   }
   const url = location.origin + import.meta.env.VITE_APP_BASE_API + file;
@@ -262,7 +265,9 @@ async function printAll(data) {
   await printPdf(data.postOrderImage, null, () => setPrinted(data.id));
   for (let item of orderList.value) {
     if ((item.id === data.id || item.parentId == data.id) && item.goodsTag) {
-      await printPdf(item.goodsTag, 'tag');
+      for (let i = 0; i < data.goodsCount; i++) {
+        await printPdf(item.goodsTag, 'tag');
+      }
     }
   }
 }

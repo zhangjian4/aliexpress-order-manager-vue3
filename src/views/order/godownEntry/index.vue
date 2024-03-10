@@ -333,7 +333,7 @@
   </div>
 </template>
 
-<script setup name="Order">
+<script setup name="GodownEntry">
 import { getToken } from '@/utils/auth';
 import {
   listOrder,

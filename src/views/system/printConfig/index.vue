@@ -1,9 +1,19 @@
 <template>
   <div class="app-container">
-    <div style="margin-bottom: 12px;">
+    <div style="margin-bottom: 12px">
+      请先下载并运行
+      <el-link
+        type="primary"
+        href="https://gitee.com/CcSimple/electron-hiprint/releases/download/1.0.9/hiprint_win_x64-1.0.9.exe"
+        target="_blank"
+        style="margin-right: 12px;"
+      >
+        Hiprint
+      </el-link>
+
       <el-button @click="reloadPrinter">重新加载打印机</el-button>
     </div>
-    
+
     <el-form :model="form" label-width="auto" style="max-width: 600px">
       <el-form-item label="面单打印机">
         <el-select v-model="form.printer">
