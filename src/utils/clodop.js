@@ -1,4 +1,4 @@
-function init() {
+export function connect() {
   return new Promise((resolve, reject) => {
     if (window.getCLodop) {
       resolve();
@@ -19,22 +19,40 @@ function init() {
 }
 
 export function getPrinters() {
-  return init().then(() => {
+  return connect().then(() => {
     var LODOP = getCLodop();
-    console.log(LODOP);
+    LODOP.PRINT_INIT('');
     const count = LODOP.GET_PRINTER_COUNT();
+    const list = [];
     for (let i = 0; i < count; i++) {
       const name = LODOP.GET_PRINTER_NAME(i);
-      console.log(name);
+      list.push({ name });
     }
-    console.log(count);
+    return list;
   });
 }
 
-export function print(printerName, url) {
-  return init().then(() => {
+export function getPaperSizeInfo(printerName) {
+  return connect().then(() => {
     var LODOP = getCLodop();
+    LODOP.PRINT_INIT('');
+    const list = LODOP.GET_PAGESIZES_LIST(printerName, '\n');
+    return list.split('\n').map((name) => ({ name }));
+  });
+}
+
+export function print(printerName, url, options = {}) {
+  return connect().then(() => {
+    var LODOP = getCLodop();
+    LODOP.PRINT_INIT('');
+    LODOP.SET_PRINTER_INDEX(printerName);
+    LODOP.SET_PRINT_PAGESIZE(
+      0,
+      options.width ?? 0,
+      options.height ?? 0,
+      options.paperName ?? ''
+    );
     LODOP.ADD_PRINT_PDF(0, 0, '100%', '100%', url);
-    LODOP.PREVIEW();
+    LODOP.PRINT();
   });
 }

@@ -105,9 +105,9 @@
             link
             type="primary"
             icon="Printer"
-            @click="printAll(scope.row)"
+            @click="printOrder(scope.row)"
             v-hasPermi="['order:order:edit']"
-            >打印全部</el-button
+            >打印面单</el-button
           >
           <el-button
             v-if="scope.row.goodsTag"
@@ -184,7 +184,7 @@ async function getList() {
           printAll(first);
         } else if (sum > 1) {
           if (lastId === first.id) {
-            printAll(first);
+            // printAll(first);
           } else {
             lastId = first.id;
           }
@@ -239,6 +239,7 @@ function handleQuery() {
 async function printPdf(file, type, beforePrint) {
   const config = getPrintConfig();
   let printerName;
+  const options = {};
   if (type === 'tag') {
     printerName = config.tagPrinter;
     if (!printerName) {
@@ -246,6 +247,13 @@ async function printPdf(file, type, beforePrint) {
       router.push('/system/printConfig');
       throw new Error('未设置货品条码打印机');
     }
+    options.orientation = 'landscape';
+    options.paperName = config.tagPaper;
+    options.scale = 'noscale';
+    // options.width = '60mm';
+    // options.height = '30mm';
+    // options.printDialog=true
+    // options.pageSize = { height: 30 * 1000, width: 60 * 1000 };
   } else {
     printerName = config.printer;
     if (!printerName) {
@@ -258,7 +266,7 @@ async function printPdf(file, type, beforePrint) {
   if (beforePrint) {
     beforePrint();
   }
-  print(printerName, url);
+  print(printerName, url, options);
 }
 async function printAll(data) {
   await connect();
@@ -270,6 +278,10 @@ async function printAll(data) {
       }
     }
   }
+}
+
+async function printOrder(data) {
+  await printPdf(data.postOrderImage, null, () => setPrinted(data.id));
 }
 
 async function printTag(data) {
