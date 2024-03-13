@@ -260,6 +260,9 @@
         <el-form-item label="入库面单" prop="postOrderImage">
           <file-upload v-model="form.postOrderImage" />
         </el-form-item>
+        <el-form-item label="货品标签" prop="goodsTag">
+          <file-upload v-model="form.goodsTag" :fileType="['pdf', 'svg']" />
+        </el-form-item>
         <el-form-item label="关联入库单" prop="parentId">
           <el-input v-model="form.parentId" placeholder="请输入关联入库单" />
         </el-form-item>

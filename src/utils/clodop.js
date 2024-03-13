@@ -56,3 +56,19 @@ export function print(printerName, url, options = {}) {
     LODOP.PRINT();
   });
 }
+
+export function printHtml(printerName, html, options = {}) {
+  return connect().then(() => {
+    var LODOP = getCLodop();
+    LODOP.PRINT_INIT('');
+    LODOP.SET_PRINTER_INDEX(printerName);
+    LODOP.SET_PRINT_PAGESIZE(
+      0,
+      options.width ?? 0,
+      options.height ?? 0,
+      options.paperName ?? ''
+    );
+    LODOP.ADD_PRINT_HTM(0, 0, '100%', '100%', html);
+    LODOP.PRINT();
+  });
+}

@@ -22,10 +22,14 @@ export function getPrinters() {
   return getInstance().getPrinters();
 }
 
-export function print(printer, pdf_path, options) {
-  return getInstance().print(printer, pdf_path, options);
+export function print(printer, url, options) {
+  return getInstance().print(printer, url, options);
 }
 
 export function getPaperSizeInfo(printer) {
   return getInstance().getPaperSizeInfo(printer);
+}
+
+export function printHtml(printer, html, options) {
+  return getInstance().printHtml(printer, html, options);
 }

@@ -57,7 +57,7 @@
           />
         </el-select>
       </el-form-item>
-      <el-form-item label="货品条码打印纸张">
+      <!-- <el-form-item label="货品条码打印纸张">
         <el-select v-model="form.tagPaper">
           <el-option
             v-for="paper in papers"
@@ -65,7 +65,7 @@
             :value="paper.name"
           />
         </el-select>
-      </el-form-item>
+      </el-form-item> -->
       <el-form-item>
         <el-button type="primary" @click="onSubmit">保存</el-button>
       </el-form-item>

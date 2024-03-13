@@ -114,6 +114,8 @@ import {
   listByOrderId,
   setPrinted,
 } from '@/api/order/order';
+import { connect, print as printPdf } from '@/utils/print';
+import { getPrintConfig, savePrintConfig } from '@/api/system/printConfig';
 
 const { proxy } = getCurrentInstance();
 
@@ -211,16 +213,27 @@ function handleQuery() {
 }
 
 async function print(data) {
+  const config = getPrintConfig();
+  let printerName = config.printer;
+  if (!printerName) {
+    ElMessage('未设置面单打印机');
+    router.push('/system/printConfig');
+    throw new Error('未设置面单打印机');
+  }
+  const url =
+    location.origin + import.meta.env.VITE_APP_BASE_API + data.postOrderImage;
+  await connect();
   await setPrinted(data.id);
-  const iframe = document.createElement('iframe');
-  iframe.style.visibility = 'hidden';
-  iframe.src = import.meta.env.VITE_APP_BASE_API + data.postOrderImage;
-  document.body.appendChild(iframe);
-  iframe.addEventListener('load', function () {
-    iframe.contentWindow.print();
-    iframe.contentWindow.addEventListener('afterprint', function () {
-      iframe.parentNode.removeChild(iframe);
-    });
-  });
+  printPdf(printerName, url, {});
+  // const iframe = document.createElement('iframe');
+  // iframe.style.visibility = 'hidden';
+  // iframe.src = import.meta.env.VITE_APP_BASE_API + data.postOrderImage;
+  // document.body.appendChild(iframe);
+  // iframe.addEventListener('load', function () {
+  //   iframe.contentWindow.print();
+  //   iframe.contentWindow.addEventListener('afterprint', function () {
+  //     iframe.parentNode.removeChild(iframe);
+  //   });
+  // });
 }
 </script>

@@ -119,7 +119,25 @@ export function print(printer, pdf_path, options) {
       if (options) {
         Object.assign(message, options);
       }
-      console.log(message);
+      socket.emit('news', message);
+      callbackMap[replyId] = { resolve, reject };
+    });
+  });
+}
+
+export function printHtml(printer, html, options) {
+  return connect().then(() => {
+    return new Promise((resolve, reject) => {
+      const replyId = getUUID();
+      const message = {
+        html,
+        replyId,
+        printer,
+        dpi: 96 * 8,
+      };
+      if (options) {
+        Object.assign(message, options);
+      }
       socket.emit('news', message);
       callbackMap[replyId] = { resolve, reject };
     });

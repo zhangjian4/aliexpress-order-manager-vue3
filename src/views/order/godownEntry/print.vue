@@ -139,6 +139,7 @@ import {
 import { connect, print } from '@/utils/print';
 import { getPrintConfig, savePrintConfig } from '@/api/system/printConfig';
 import { ElMessage } from 'element-plus';
+import { printHtml } from '../../../utils/print';
 
 const { proxy } = getCurrentInstance();
 const router = useRouter();
@@ -236,6 +237,10 @@ function handleQuery() {
   getList();
 }
 
+function getFullUrl(file) {
+  return location.origin + import.meta.env.VITE_APP_BASE_API + file;
+}
+
 async function printPdf(file, type, beforePrint) {
   const config = getPrintConfig();
   let printerName;
@@ -248,7 +253,7 @@ async function printPdf(file, type, beforePrint) {
       throw new Error('未设置货品条码打印机');
     }
     options.orientation = 'landscape';
-    options.paperName = config.tagPaper;
+    // options.paperName = config.tagPaper;
     options.scale = 'noscale';
     // options.width = '60mm';
     // options.height = '30mm';
@@ -262,19 +267,20 @@ async function printPdf(file, type, beforePrint) {
       throw new Error('未设置面单打印机');
     }
   }
-  const url = location.origin + import.meta.env.VITE_APP_BASE_API + file;
+  const url = getFullUrl(file);
   if (beforePrint) {
     beforePrint();
   }
   print(printerName, url, options);
 }
+
 async function printAll(data) {
   await connect();
   await printPdf(data.postOrderImage, null, () => setPrinted(data.id));
   for (let item of orderList.value) {
     if ((item.id === data.id || item.parentId == data.id) && item.goodsTag) {
-      for (let i = 0; i < data.goodsCount; i++) {
-        await printPdf(item.goodsTag, 'tag');
+      for (let i = 0; i < item.goodsCount; i++) {
+        await printTag(item);
       }
     }
   }
@@ -285,6 +291,23 @@ async function printOrder(data) {
 }
 
 async function printTag(data) {
-  await printPdf(data.goodsTag, 'tag');
+  if (data.goodsTag.endsWith('.pdf')) {
+    await printPdf(data.goodsTag, 'tag');
+  } else {
+    const config = getPrintConfig();
+    let printerName = config.tagPrinter;
+    const options = {};
+    printerName = config.tagPrinter;
+    if (!printerName) {
+      ElMessage('未设置货品条码打印机');
+      router.push('/system/printConfig');
+      throw new Error('未设置货品条码打印机');
+    }
+    const html = `<img src="${getFullUrl(
+      data.goodsTag
+    )}" style="width:100%;"/>`;
+    await printHtml(printerName, html, options);
+  }
+  // await printPdf(data.goodsTag, 'tag');
 }
 </script>
