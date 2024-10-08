@@ -303,9 +303,14 @@ async function printTag(data) {
       router.push('/system/printConfig');
       throw new Error('未设置货品条码打印机');
     }
-    const html = `<img src="${getFullUrl(
-      data.goodsTag
-    )}" style="width:100%;"/>`;
+    const src = getFullUrl(data.goodsTag);
+    const html = `
+<html>
+  <body>
+    <img src="${src}" style="width:100%;"/>
+  </body>
+</html>
+`;
     await printHtml(printerName, html, options);
   }
   // await printPdf(data.goodsTag, 'tag');
